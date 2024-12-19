@@ -8,15 +8,16 @@ Small tool for updating mcu firmware.
 ## How it works
 - Flashing is done with katapult flash tool
 - <b>Updating katapult is done via deployer. Ensure the option is set in katapult make config!</b>
-- For mcus connected via USB
-    - Katapult is flashed via USB (katapult make must be configured for USB)
-    - Klipper is flashed via USB (klipper make must be configured for USB)
-- For mcus connected via CAN
-    - Katapult is flashed via CAN (katapult make must be configured for CAN)
-    - Klipper is flashed via CAN (klipper make must be configured for CAN)
-- For mcus connected via USB but used as USB to CAN BRIDGE
-    - Katapult is flashed via USB (katapult make must be configured for USB, not for USB to CAN Bridge!)
-    - Klipper is flashed via CAN (klipper make must be configured for USB to CAN Bridge!)
+- <b>BUS</b> types
+    - For mcus connected via <b>USB</b>
+        - Katapult is flashed via USB (katapult make must be configured for USB)
+        - Klipper is flashed via USB (klipper make must be configured for USB)
+    - For mcus connected via <b>CAN</b>
+        - Katapult is flashed via CAN (katapult make must be configured for CAN)
+        - Klipper is flashed via CAN (klipper make must be configured for CAN)
+    - For mcus connected via USB but used as USB to CAN <b>BRIDGE</b>
+        - Katapult is flashed via USB (katapult make must be configured for USB, not for USB to CAN Bridge!)
+        - Klipper is flashed via CAN (klipper make must be configured for USB to CAN Bridge!)
 - klipper must alwys be updated after katapult is updated.<br>
   (Reason is that the deployer is flashed into klipper memory area. Then it updates the bootloader)
 ## Usage
@@ -40,12 +41,12 @@ Note: Developed and tested and used on MainsailOS.
 
 ### Configuration
 - The mcus which shall be updated have to be configured in file ~/printer_data/mcu-flash/mcu.cfg
-    - Add a line for each mcu with following informations and format:
+    - Add a line for each mcu with following informations and format. See example [mcu.cfg](example_configs/mcu.cfg)<br>
         [#]="MCU_NAME,BUS,CAN-ID,USB-ID"
-        - BUS: CAN|USB|BRIDGE
+        - BUS: CAN|USB|BRIDGE (see [How it works](#how-it-works))
         - CAN-ID: CAN-ID|-
-        - USB-ID: USB-ID|-
-    See example configurations for examples
+        - USB-ID: USB-ID|-</br>
+  
 - If you have make config files already available:
     - Copy katapult make config files to folder ~/printer_data/mcu-flash/katapult and rename them to config.make.katapult.<MCU_NAME_IN_MCU.CFG>
     - Copy klipper make config files to folder ~/printer_data/mcu-flash/katapult and rename them to config.make.klipper.<MCU_NAME_IN_MCU.CFG>
