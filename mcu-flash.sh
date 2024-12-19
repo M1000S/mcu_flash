@@ -1,95 +1,97 @@
 #!/bin/bash
-source mcu-flash.cfg
+dir_cfg=~/printer_data/mcu-flash
+dir_cfg_make_katapult=$dir_cfg/katapult
+dir_cfg_make_klipper=$dir_cfg/klipper
+dir_source=source
+file_mcu_cfg=$dir_cfg/mcu.cfg
+file_mcu_sh=$dir_source/mcu.sh
+file_update_sh=$dir_source/update.sh
+file_make_katapult_prefix=$dir_cfg_make_katapult/config.make.katapult.
+file_make_klipper_prefix=$dir_cfg_make_klipper/config.make.klipper.
+can_ifc=can0
 
-declare -A mcu_type
-declare -A mcu_id
+source source/utils.cfg
 
-if [ ! -d "$dir_klipper" ]; then
-  echo "$dir_klipper does not exist."
-else
-  echo "$dir_klipper exists."
+############################################
+## setup folder and config file if not exist
+init_performed=no
+if [ ! -d "$dir_cfg" ]; then
+    mkdir $dir_cfg
+    echo "${yellow}Added $dir_cfg folder"
 fi
 
-if [ ! -d "$dir_katapult" ]; then
-  echo "$dir_katapult does not exist."
-else
-  echo "$dir_katapult exists."
+if [ ! -d "$dir_cfg_make_katapult" ]; then
+    mkdir $dir_cfg_make_katapult
+    echo "Added $dir_cfg_make_katapult folder"
 fi
 
-if [ ! -d "$dir_config" ]; then
-  echo "$dir_config does not exist."
-  mkdir $dir_config
-  echo "$dir_config created."
+if [ ! -d "$dir_cfg_make_klipper" ]; then
+    mkdir $dir_cfg_make_klipper
+    echo "Added $dir_cfg_make_klipper folder"
 fi
 
-  if [ ! -f "$dir_config/mcu.cfg" ]; then
-    echo "$dir_config/mcu.cfg does not exist."
-    echo "MCU_NAME,FLASH_TYPE <USB|CAN|BRIDGE|LINUX>,DEVICE_ID" > "$dir_config/mcu.cfg"
-    echo "$dir_config/mcu.cfg created."
-    echo "Fill out $dir_config/mcu.cfg and restart."
+if [ ! -f "$file_mcu_cfg" ]; then
+    filestring=$'MCUS=(\n'
+    filestring+=$')\n'
+    echo "$filestring" > $file_mcu_cfg
+    echo "Added $file_mcu_cfg file"
+    init_performed="yes"
+fi
+
+if [[ $init_performed == "yes" ]]; then
+    echo "${magenta}Please configure your mcus in $file_mcu_cfg!"
     exit 0
-  else
-    echo "Read mcus from $dir_config/mcu.cfg."
-    while read p; do 
-        echo "$p"
-        if [[ ! $p == *"MCU_NAME"* ]]; then
-            IFS=', ' read -r -a array <<< "$p"
-            echo ${array[@]}
-            mcu_type[${array[0]}]="${array[1]},${array[2]}"
-            #mcu_id[${array[0]}] = ${array[1]}
-            echo "config.make.klipper.${array[0]}"
-            if [ ! -f "$dir_config/config.make.klipper.${array[0]}" ]; then
-                echo "" >> "$dir_config/config.make.klipper.${array[0]}"
-                echo "$dir_config/config.make.klipper.${array[0]} created."
-            fi
-        fi
-    done < "$dir_config/mcu.cfg"
-  fi
-
-for key in "${!mcu_type[@]}" 
-do
-   echo $key
-   echo ${mcu_type[$key]}
-done
+fi
+##
+############################################
 
 
-function flash_mcu {
-  sudo systemctl stop klipper
-  cd ~/klipper
-  make clean
-  #make menuconfig KCONFIG_CONFIG=config.make.klipper.octopus
-  # make -j4 KCONFIG_CONFIG=config.make.klipper.octopus
+source $file_mcu_cfg
+source $file_mcu_sh
+source $file_update_sh
 
-  ### Jump2Boot Bridge
-  #python3 ~/katapult/scripts/flashtool.py -i can0 -u 8f5ad134a670 -r
-  
-  ### USB
-  #python3 ~/katapult/scripts/flashtool.py -d /dev/serial/by-id/usb-katapult_stm32g0b1xx_32003B000A504B4633373520-if00 -f ~/klipper/out/klipper.bin
-  #python3 ~/katapult/scripts/flashtool.py -d /dev/serial/by-id/usb-katapult_stm32g0b1xx_32003B000A504B4633373520-if00 -f ~/katapult/out/deployer.bin
-  ### CAN
-  #python3 ~/katapult/scripts/flashtool.py -i can0 -f ~/klipper/out/klipper.bin -u e6002b2b0540
-  #python3 ~/katapult/scripts/flashtool.py -i can0 -f ~/katapult/out/deployer.bin -u e6002b2b0540
+mcucfg_evaluateMcus
+mcucfg_checkMakeConfig
 
-  echo $1
-  echo ${mcu_type[$1]}
-  make clean
-  sudo systemctl stop klipper
+function mainMenu(){
+    while true; do 
+        clear
+        echo "${cyan}/============ Main Menu ============\\"
+        echo "Available actions:"
+        PS3="Please select: "
+        select action in "Update MCUs" Quit
+        do
+            case $action in
+                "Update MCUs") updateMcuMenu ;break;;
+                "Quit") break 2;;
+                *) echo "Invalid selction";;
+            esac
+        done
+    done
 }
 
-
-
-PS3="Select mcu please: "
-
-items=(${!mcu_type[@]})
-
-while true; do
-    select item in "${items[@]}" Quit
-    do
-        clear
-        if [ $REPLY -gt ${#items[@]} ]; then
-            echo "We're done!"; break 2;
-        else
-            echo "Start flashing mcu #$REPLY"; flash_mcu "$item"; break ;
-        fi
+function updateMcuMenu(){
+    while true; do
+        clear 
+        echo "${cyan}/============ Update MCUs ============\\"
+        echo "Available actions:"
+        PS3="Please select: "
+        select action in ${mcunames[@]} "Back"
+        do
+            if [[ "$action" == "Back" ]]; then
+                break 2
+            fi
+            if [[ $REPLY > ${#mcunames[@]} ]]; then
+                echo "Invalid slection"
+                break
+            else
+                echo "Start updating mcu $action${white}"
+                updateMcu "$action" $(getIndexFromName "$action")
+                break
+            fi
+        done
     done
-done
+}
+
+#mcucfg_printMcus
+mainMenu
