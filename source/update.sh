@@ -26,7 +26,7 @@ function flash_mcu_can {
   cd ~
   sudo systemctl stop klipper
   echo "Starting CAN flash"
-  #python3 ~/katapult/scripts/flashtool.py -i "$can_ifc" -f "$dir_cfg/firmware.bin" -u "$1"
+  python3 ~/katapult/scripts/flashtool.py -i "$can_ifc" -f "$dir_cfg/firmware.bin" -u "$1"
   rm "$dir_cfg/firmware.bin"
   sudo systemctl start klipper
 }
@@ -35,7 +35,7 @@ function flash_mcu_usb {
   cd ~  
   sudo systemctl stop klipper
   echo "Starting USB flash"
-  #python3 ~/katapult/scripts/flashtool.py -d "$1" -f "$dir_cfg/firmware.bin"
+  python3 ~/katapult/scripts/flashtool.py -d "$1" -f "$dir_cfg/firmware.bin"
   rm "$dir_cfg/firmware.bin"
   sudo systemctl start klipper
 }
@@ -44,10 +44,10 @@ function flash_mcu_bridge {
   cd ~  
   sudo systemctl stop klipper
   echo "Jump to boot"
-  #python3 ~/katapult/scripts/flashtool.py -i can0 -u "$1" -r
+  python3 ~/katapult/scripts/flashtool.py -i can0 -u "$1" -r
   sleep 5
   echo "Starting BRIDGE flash"
-  #python3 ~/katapult/scripts/flashtool.py -d "$2" -f "$dir_cfg/firmware.bin"
+  python3 ~/katapult/scripts/flashtool.py -d "$2" -f "$dir_cfg/firmware.bin"
   rm "$dir_cfg/firmware.bin"
   sudo systemctl start klipper
 }
