@@ -5,8 +5,21 @@ Small tool for updating mcu firmware.
 - Single script to update all mcus bootloader and application.
 - Keep mcu configurations in seperate directory with clear naming
 
+## How it works
+- Flashing is done with katapult flash tool
+- <b>Updating katapult is done via deployer. Ensure the option is set in katapult make config!</b>
+- For mcus connected via USB
+    - Katapult is flashed via USB (katapult make must be configured for USB)
+    - Klipper is flashed via USB (klipper make must be configured for USB)
+- For mcus connected via CAN
+    - Katapult is flashed via CAN (katapult make must be configured for CAN)
+    - Klipper is flashed via CAN (klipper make must be configured for CAN)
+- For mcus connected via USB but used as USB to CAN BRIDGE
+    - Katapult is flashed via USB (katapult make must be configured for USB, not for USB to CAN Bridge!)
+    - Klipper is flashed via CAN (klipper make must be configured for USB to CAN Bridge!)
+- klipper must alwys be updated after katapult is updated.<br>
+  (Reason is that the deployer is flashed into klipper memory area. Then it updates the bootloader)
 ## Usage
-
 ### Prerequisites
 - All mcus are flashed with katapult bootloader
 - Default install directories needed
@@ -44,3 +57,8 @@ Follow the menu :-)
 
 ### Tips
 - Add systemctl * klipper to sudoers to avoid password prompt
+
+### Useful links
+* [Katapult](https://github.com/Arksine/katapult)
+* [Esoterical CAN Guide](https://canbus.esoterical.online/)
+* [Dr.Klipper - Flash Guide](https://drklipper.de/doku.php?id=klipper_faq:flash_guide:start)
